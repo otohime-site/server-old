@@ -1,0 +1,23 @@
+version: "3"
+services:
+  app:
+    build: ./
+    ports:
+      - "8585:8585"
+    volumes:
+      - ./migrations:/app/migrations
+      - ./models:/app/models
+    links:
+      - db
+  db:
+    build: docker-db/
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=semiquaver
+      - POSTGRES_PASSWORD=smq.moe
+      - POSTGRES_DB=semiquaver
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+volumes:
+  dbdata:
