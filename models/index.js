@@ -21,7 +21,11 @@ fs
   })
   .forEach(file => {
     var model = sequelize['import'](path.join(__dirname, file));
-    db[model.name] = model;
+    if (Array.isArray(model)) {
+      model.forEach(m => { db[m.name] = m; });
+    } else {
+      db[model.name] = model;
+    }
   });
 
 Object.keys(db).forEach(modelName => {

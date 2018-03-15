@@ -12,6 +12,14 @@ EXECUTE format('CREATE TRIGGER versioning_up BEFORE UPDATE ON %s FOR EACH ROW WH
 END
 $$ LANGUAGE plpgsql;
 
+CREATE TABLE laundry_players (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nickname VARCHAR UNIQUE NOT NULL,
+  user_id uuid REFERENCES users (id) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 CREATE TABLE laundry_records (
   id uuid PRIMARY KEY,
   card_name VARCHAR NOT NULL,
@@ -19,17 +27,18 @@ CREATE TABLE laundry_records (
   max_rating REAL NOT NULL,
   icon VARCHAR NOT NULL,
   title VARCHAR NOT NULL,
-  period tstzrange NOT NULL
+  period tstzrange NOT NULL,
+  player_id uuid REFERENCES laundry_players (id) NOT NULL
 );
 
 CREATE TABLE laundry_records_recent (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES users (id) NOT NULL
+  player_id uuid REFERENCES laundry_players (id) NOT NULL
 ) INHERITS (laundry_records);
 
 CREATE TABLE laundry_records_history (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES users (id) NOT NULL
+  player_id uuid REFERENCES laundry_players (id) NOT NULL
 ) INHERITS (laundry_records);
 
 CREATE INDEX ON laundry_records_recent USING GIST (period);
@@ -43,7 +52,9 @@ SELECT create_versioning_trigger('laundry_records_recent', 'laundry_records_hist
 DROP TABLE laundry_records_recent;
 DROP TABLE laundry_records_history;
 DROP TABLE laundry_records;
+DROP TABLE laundry_players;
 DROP FUNCTION IF EXISTS create_versioning_trigger(recent regclass, history regclass);
+
     `); 
   }
 };

@@ -6,3 +6,4 @@ ADD yarn.lock /app
 WORKDIR /app
 RUN yarn install
 ADD . /app
+CMD ["node", "index.js"]
