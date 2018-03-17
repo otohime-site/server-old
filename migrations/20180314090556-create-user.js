@@ -8,11 +8,11 @@ module.exports = {
         primaryKey: true,
       },
       email: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
         unique: true
       },
-      password: {
+      token: {
         allowNull: false,
         type: Sequelize.STRING
       },
