@@ -1,5 +1,8 @@
 const models = require('./models');
 
-models.user.findAll().then(users => { console.log(users) });
-models.laundry_records.findAll().then(lrs => { console.log(lrs) });
+async function go() {
+  var users = await models.user.findAll();
+  console.log(users);
+}
 
+go();
