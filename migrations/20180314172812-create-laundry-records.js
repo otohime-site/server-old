@@ -29,13 +29,18 @@ CREATE TABLE laundry_records (
   icon VARCHAR NOT NULL,
   title VARCHAR NOT NULL,
   period tstzrange NOT NULL,
+  class VARCHAR NOT NULL,
   player_id uuid REFERENCES laundry_players (id) NOT NULL
 );
 
 CREATE TABLE laundry_records_recent (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  player_id uuid REFERENCES laundry_players (id) NOT NULL
+  player_id uuid REFERENCES laundry_players (id) UNIQUE NOT NULL
 ) INHERITS (laundry_records);
+
+CREATE INDEX ON laundry_records_recent(card_name);
+CREATE INDEX ON laundry_records_recent(rating);
+CREATE INDEX ON laundry_records_recent(class);
 
 CREATE TABLE laundry_records_history (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
