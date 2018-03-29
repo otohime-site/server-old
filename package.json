@@ -2,6 +2,8 @@
   "name": "semiquaver-server",
   "license": "MIT",
   "dependencies": {
+    "bcrypt": "^1.0.3",
+    "express": "^4.16.3",
     "pg": "^7.4.1",
     "pg-hstore": "^2.3.2",
     "sequelize": "^4.36.1",
