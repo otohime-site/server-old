@@ -17,20 +17,22 @@ function getAttributes(DataTypes) {
 }
 
 module.exports = (sequelize, DataTypes) => {
-  var laundry_records = sequelize.define('laundry_records',
+  var laundry_record = sequelize.define('laundry_record',
       getAttributes(DataTypes), { underscored: true, timestamps: false, freezeTableName: true, tableName: 'laundry_records' });
-  laundry_records.associate = function(models) {
-    // associations can be defined here
+  laundry_record.associate = function(models) {
+    laundry_record.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
   };
-  var laundry_records_recent = sequelize.define('laundry_records_recent',
-      getAttributes(DataTypes), { underscored: true, timestamps: false, freezeTableName: true, tableName: 'laundry_records_recent' });
-  laundry_records_recent.associate = function(models) {
-    // associations can be defined here
+  var laundry_record_recent = sequelize.define('laundry_record_recent',
+      getAttributes(DataTypes), { underscored: true, timestamps: false, freezeTableName: true, tableName: 'laundry_records_recent',
+        indexes: [{ unique: true, fields: ['player_id'] }]});
+  laundry_record_recent.associate = function(models) {
+    laundry_record_recent.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
   };
-  var laundry_records_history = sequelize.define('laundry_records_history',
+  var laundry_record_history = sequelize.define('laundry_record_history',
       getAttributes(DataTypes), { underscored: true, timestamps: false, freezeTableName: true, tableName: 'laundry_records_history' });
-  laundry_records_history.associate = function(models) {
+  laundry_record_history.associate = function(models) {
     // associations can be defined here
+    laundry_record_history.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
   };
-  return [laundry_records, laundry_records_recent, laundry_records_history];
+  return [laundry_record, laundry_record_recent, laundry_record_history];
 };
