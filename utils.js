@@ -1,8 +1,10 @@
-exports.asyncMiddleware = fn =>
-  (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-
+exports.appThrow = (status, message) => {
+  /* Koa-style error throwing. */
+  const err = new Error(message);
+  err.status = status;
+  err.exposed = true;
+  throw err;
+};
 exports.userRequired = (req, res, next) => {
   const models = require('./models');
 };
