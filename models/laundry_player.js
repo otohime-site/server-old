@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
 
   }, { underscored: true });
   laundry_player.associate = function(models) {
-    laundry_player.belongsTo(models.user);
+    laundry_player.belongsTo(models.user, { foreignKey: 'user_id' });
   };
   return laundry_player;
 };
