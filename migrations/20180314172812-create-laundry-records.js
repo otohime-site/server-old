@@ -15,7 +15,7 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE laundry_players (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nickname VARCHAR UNIQUE NOT NULL,
-  privacy VARCHAR UNIQUE NOT NULL,
+  privacy VARCHAR NOT NULL,
   user_id uuid REFERENCES users (id) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL
