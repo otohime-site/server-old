@@ -15,24 +15,24 @@ function getAttributes(DataTypes) {
     period: DataTypes.RANGE(DataTypes.DATE)
   };
 }
+var defaultConfig = {underscored: true, timestamps: false, freezeTableName: true};
+var makeAssociation = function(obj) {
+  obj.associate = function(models) {
+    obj.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
+  };
+};
 
 module.exports = (sequelize, DataTypes) => {
   var laundry_record = sequelize.define('laundry_record',
-      getAttributes(DataTypes), { underscored: true, timestamps: false, freezeTableName: true, tableName: 'laundry_records' });
-  laundry_record.associate = function(models) {
-    laundry_record.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
-  };
+    getAttributes(DataTypes), Object.assign({ tableName: 'laundry_records' }, defaultConfig));
+  makeAssociation(laundry_record);
   var laundry_record_recent = sequelize.define('laundry_record_recent',
-      getAttributes(DataTypes), { underscored: true, timestamps: false, freezeTableName: true, tableName: 'laundry_records_recent',
-        indexes: [{ unique: true, fields: ['player_id'] }]});
-  laundry_record_recent.associate = function(models) {
-    laundry_record_recent.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
-  };
+      getAttributes(DataTypes), Object.assign({
+        tableName: 'laundry_records_recent',
+        indexes: [{ unique: true, fields: ['player_id'] }]}, defaultConfig));
+  makeAssociation(laundry_record_recent);
   var laundry_record_history = sequelize.define('laundry_record_history',
-      getAttributes(DataTypes), { underscored: true, timestamps: false, freezeTableName: true, tableName: 'laundry_records_history' });
-  laundry_record_history.associate = function(models) {
-    // associations can be defined here
-    laundry_record_history.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
-  };
+      getAttributes(DataTypes), Object.assign({ tableName: 'laundry_records_history' }, defaultConfig));
+  makeAssociation(laundry_record_history);
   return [laundry_record, laundry_record_recent, laundry_record_history];
 };
