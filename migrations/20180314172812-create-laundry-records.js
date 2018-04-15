@@ -12,53 +12,53 @@ EXECUTE format('CREATE TRIGGER versioning_up BEFORE UPDATE ON %s FOR EACH ROW WH
 END
 $$ LANGUAGE plpgsql;
 
-CREATE TABLE laundry_players (
+CREATE TABLE "laundryPlayers" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   nickname VARCHAR UNIQUE NOT NULL,
   privacy VARCHAR NOT NULL,
-  user_id uuid REFERENCES users (id) NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+  "userId" uuid REFERENCES users (id) NOT NULL,
+  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
-CREATE TABLE laundry_records (
+CREATE TABLE "laundryRecords" (
   id uuid PRIMARY KEY,
-  card_name VARCHAR NOT NULL,
+  "cardName" VARCHAR NOT NULL,
   rating REAL NOT NULL,
-  max_rating REAL NOT NULL,
+  "maxRating" REAL NOT NULL,
   icon VARCHAR NOT NULL,
   title VARCHAR NOT NULL,
   period tstzrange NOT NULL,
   class VARCHAR NOT NULL,
-  player_id uuid REFERENCES laundry_players (id) NOT NULL
+  "laundryPlayerId" uuid REFERENCES "laundryPlayers" (id) NOT NULL
 );
 
-CREATE TABLE laundry_records_recent (
+CREATE TABLE "laundryRecordRecents" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  player_id uuid REFERENCES laundry_players (id) UNIQUE NOT NULL
-) INHERITS (laundry_records);
+  "laundryPlayerId" uuid REFERENCES "laundryPlayers" (id) NOT NULL
+) INHERITS ("laundryRecords");
 
-CREATE INDEX ON laundry_records_recent(card_name);
-CREATE INDEX ON laundry_records_recent(rating);
-CREATE INDEX ON laundry_records_recent(class);
+CREATE INDEX ON "laundryRecordRecents"("cardName");
+CREATE INDEX ON "laundryRecordRecents"(rating);
+CREATE INDEX ON "laundryRecordRecents"(class);
 
-CREATE TABLE laundry_records_history (
+CREATE TABLE "laundryRecordHistories" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  player_id uuid REFERENCES laundry_players (id) NOT NULL
-) INHERITS (laundry_records);
+  "laundryPlayerId" uuid REFERENCES "laundryPlayers" (id) NOT NULL
+) INHERITS ("laundryRecords");
 
-CREATE INDEX ON laundry_records_recent USING GIST (period);
-CREATE INDEX ON laundry_records_history USING GIST (period);
+CREATE INDEX ON "laundryRecordRecents" USING GIST (period);
+CREATE INDEX ON "laundryRecordHistories" USING GIST (period);
 
-SELECT create_versioning_trigger('laundry_records_recent', 'laundry_records_history');
+SELECT create_versioning_trigger('"laundryRecordRecents"', '"laundryRecordHistories"');
     `); 
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.query(`
-DROP TABLE laundry_records_recent;
-DROP TABLE laundry_records_history;
-DROP TABLE laundry_records;
-DROP TABLE laundry_players;
+DROP TABLE "laundryRecordRecents";
+DROP TABLE "laundryRecordHistories";
+DROP TABLE "laundryRecords";
+DROP TABLE "laundryPlayers";
 DROP FUNCTION IF EXISTS create_versioning_trigger(recent regclass, history regclass);
 
     `); 

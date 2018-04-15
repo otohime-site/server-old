@@ -15,24 +15,21 @@ function getAttributes(DataTypes) {
     period: DataTypes.RANGE(DataTypes.DATE)
   };
 }
-var defaultConfig = {underscored: true, timestamps: false, freezeTableName: true};
+var defaultConfig = {timestamps: false};
 var makeAssociation = function(obj) {
   obj.associate = function(models) {
-    obj.belongsTo(models.laundry_player, { foreignKey: 'player_id' });
+    obj.belongsTo(models.laundryPlayer);
   };
 };
 
 module.exports = (sequelize, DataTypes) => {
-  var laundry_record = sequelize.define('laundry_record',
-    getAttributes(DataTypes), Object.assign({ tableName: 'laundry_records' }, defaultConfig));
-  makeAssociation(laundry_record);
-  var laundry_record_recent = sequelize.define('laundry_record_recent',
+  var LaundryRecord = sequelize.define('laundryRecord', getAttributes(DataTypes), defaultConfig);
+  makeAssociation(LaundryRecord);
+  var LaundryRecordRecent = sequelize.define('laundryRecordRecent',
       getAttributes(DataTypes), Object.assign({
-        tableName: 'laundry_records_recent',
-        indexes: [{ unique: true, fields: ['player_id'] }]}, defaultConfig));
-  makeAssociation(laundry_record_recent);
-  var laundry_record_history = sequelize.define('laundry_record_history',
-      getAttributes(DataTypes), Object.assign({ tableName: 'laundry_records_history' }, defaultConfig));
-  makeAssociation(laundry_record_history);
-  return [laundry_record, laundry_record_recent, laundry_record_history];
+        indexes: [{ unique: true, fields: ['laundryPlayerId'] }]}, defaultConfig));
+  makeAssociation(LaundryRecordRecent);
+  var LaundryRecordHistory = sequelize.define('laundryRecordHistory', getAttributes(DataTypes), defaultConfig);
+  makeAssociation(LaundryRecordHistory);
+  return [LaundryRecord, LaundryRecordRecent, LaundryRecordHistory];
 };

@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     email: DataTypes.STRING,
     token: DataTypes.STRING
-  }, { underscored: true });
+  }, {  });
   User.associate = function(models) {
     // associations can be defined here
   };

@@ -34,31 +34,30 @@ app.post('/users/new', asyncHandler(async (req, res) => {
 }));
 app.get('/mai/:nickname', asyncHandler(async (req, res) => {
   var nickname = req.params.nickname;
-  var player = await models.laundry_player.findOne({where: {'nickname': nickname}});
-  res.send(JSON.stringify(player));
+  var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
 }));
 app.post('/mai/', bodyParser, requireUser, asyncHandler(async (req, res) => {
   var nickname = req.body.nickname;
   var privacy = req.body.privacy;
   var user = req.user;
-  var player = await models.laundry_player.findOne({where: {'nickname': nickname}});
+  var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
   if (player) {
     error(400, "exists");
     return;
   }
-  var newPlayer = await models.laundry_player.create({'nickname': nickname, 'user_id': user.id, 'privacy': privacy});
+  var newPlayer = await models.laundryPlayer.create({'nickname': nickname, 'userId': user.id, 'privacy': privacy});
   res.send(JSON.stringify({}));
 }));
 
 app.post('/mai/:nickname', bodyParser, requireUser, asyncHandler(async (req, res) => {
   var nickname = req.params.nickname;
   var user = req.user;
-  var player = await models.laundry_player.findOne({where: {'nickname': nickname}});
+  var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
   if (!player) {
     error(404, "not_exists");
     return;
   }
-  if (player.user_id != user.id) {
+  if (player.userId != user.id) {
     error(403, "forbidden");
     return;
   }
