@@ -3,6 +3,8 @@ const express = require('express');
 const uuidv4 = require('uuid/v4');
 const bcrypt = require('bcrypt');
 const asyncHandler = require('express-async-handler');
+const { check, validationResult } = require('express-validator/check');
+const { matchedData, sanitize } = require('express-validator/filter');
 const error = require('./utils').appThrow;
 const bodyParser = express.urlencoded({extended: true});
 var app = express();
@@ -39,9 +41,18 @@ app.get('/mai/:nickname', asyncHandler(async (req, res) => {
     error(404, "not_found");
   }
 }));
-app.post('/mai/', bodyParser, requireUser, asyncHandler(async (req, res) => {
-  var nickname = req.body.nickname;
-  var privacy = req.body.privacy;
+app.post('/mai/', bodyParser, requireUser, [
+  check('nickname').matches(/[0-9a-z\-\_]/),
+  check('privacy').matches(/^(public|anonymous|private)$/)
+], asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.mapped());
+    error(422, "validation");
+  }
+  var data = matchedData(req);
+  var nickname = data.nickname;
+  var privacy = data.privacy;
   var user = req.user;
   var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
   if (player) {
