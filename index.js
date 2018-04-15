@@ -35,6 +35,9 @@ app.post('/users/new', asyncHandler(async (req, res) => {
 app.get('/mai/:nickname', asyncHandler(async (req, res) => {
   var nickname = req.params.nickname;
   var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
+  if (!player) {
+    err(404, "not_found");
+  }
 }));
 app.post('/mai/', bodyParser, requireUser, asyncHandler(async (req, res) => {
   var nickname = req.body.nickname;
@@ -66,7 +69,7 @@ app.post('/mai/:nickname', bodyParser, requireUser, asyncHandler(async (req, res
 app.use(function(err, req, res, next) {
   if (!err.exposed) {
     console.log(err);
-    res.status(500).send(JSON.stringify({"err": true}));
+    res.status(500).send(JSON.stringify({"err": "internal"}));
   } else {
     res.status(err.status).send(JSON.stringify({"err": err.message}));
   }
