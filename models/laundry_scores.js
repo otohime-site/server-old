@@ -7,6 +7,7 @@ function getAttributes(DataTypes) {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4
     },
+  seq: DataTypes.SMALLINT,
   category: DataTypes.STRING,
   songName: DataTypes.STRING,
   difficulty: DataTypes.STRING,

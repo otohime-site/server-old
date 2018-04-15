@@ -4,6 +4,7 @@ module.exports = {
     return queryInterface.sequelize.query(`
 CREATE TABLE "laundryScores" (
   id uuid PRIMARY KEY,
+  seq SMALLINT NOT NULL,
   category VARCHAR NOT NULL,
   "songName" VARCHAR NOT NULL,
   difficulty VARCHAR NOT NULL,
