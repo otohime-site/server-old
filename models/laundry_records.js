@@ -7,11 +7,12 @@ function getAttributes(DataTypes) {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4
     },
-    card_name: DataTypes.STRING,
+    cardName: DataTypes.STRING,
     rating: DataTypes.REAL,
-    max_rating: DataTypes.REAL,
+    maxRating: DataTypes.REAL,
     icon: DataTypes.STRING,
     title: DataTypes.STRING,
+    class: DataTypes.STRING,
     period: DataTypes.RANGE(DataTypes.DATE)
   };
 }

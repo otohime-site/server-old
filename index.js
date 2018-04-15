@@ -36,10 +36,12 @@ app.post('/users/new', asyncHandler(async (req, res) => {
 }));
 app.get('/mai/:nickname', asyncHandler(async (req, res) => {
   var nickname = req.params.nickname;
-  var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
+  var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}, include: {model: models.laundryRecordRecent}});
   if (!player) {
     error(404, "not_found");
   }
+  var record = await player.getLaundryRecordRecent();
+  res.send(JSON.stringify(record));
 }));
 app.post('/mai/', bodyParser, requireUser, [
   check('nickname').matches(/[0-9a-z\-\_]/),
@@ -63,7 +65,20 @@ app.post('/mai/', bodyParser, requireUser, [
   res.send(JSON.stringify({}));
 }));
 
-app.post('/mai/:nickname', bodyParser, requireUser, asyncHandler(async (req, res) => {
+app.post('/mai/:nickname', bodyParser, requireUser, [
+  check('cardName').isString(),
+  check('rating').isFloat({min: 0, max: 20}),
+  check('maxRating').isFloat({min: 0, max: 20}),
+  check('icon').isString(),
+  check('title').isString(),
+  check('class').isString(),
+  ], asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.mapped());
+    error(422, "validation");
+  }
+  var data = matchedData(req);
   var nickname = req.params.nickname;
   var user = req.user;
   var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
@@ -75,6 +90,9 @@ app.post('/mai/:nickname', bodyParser, requireUser, asyncHandler(async (req, res
     error(403, "forbidden");
     return;
   }
+  var newRecord = await models.laundryRecordRecent.upsert(Object.assign(data, {
+    'laundryPlayerId': player.id
+  }));
 }));
 
 app.use(function(err, req, res, next) {

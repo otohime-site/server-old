@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
   LaundryPlayer.associate = function(models) {
     LaundryPlayer.belongsTo(models.user);
     LaundryPlayer.hasMany(models.laundryRecord);
+    LaundryPlayer.hasOne(models.laundryRecordRecent);
     LaundryPlayer.hasMany(models.laundryScore);
   };
   return LaundryPlayer;
