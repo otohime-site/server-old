@@ -36,12 +36,17 @@ app.post('/users/new', asyncHandler(async (req, res) => {
 }));
 app.get('/mai/:nickname', asyncHandler(async (req, res) => {
   var nickname = req.params.nickname;
-  var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}, include: {model: models.laundryRecordRecent}});
+  var player = await models.laundryPlayer.findOne({
+    where: {'nickname': nickname},
+    include: [
+      {model: models.laundryRecordRecent},
+      {model: models.laundryScoreRecent}
+    ]
+  });
   if (!player) {
     error(404, "not_found");
   }
-  var record = await player.getLaundryRecordRecent();
-  res.send(JSON.stringify(record));
+  res.send(JSON.stringify(player));
 }));
 app.post('/mai/', bodyParser, requireUser, [
   check('nickname').matches(/[0-9a-z\-\_]/),
@@ -72,6 +77,11 @@ app.post('/mai/:nickname', bodyParser, requireUser, [
   check('icon').isString(),
   check('title').isString(),
   check('class').isString(),
+  check('scores.*.category').isString(),
+  check('scores.*.songName').isString(),
+  check('scores.*.difficulty').isInt({min: 1, max: 6}),
+  check('scores.*.score').isFloat({min: 0, max: 104}),
+  check('scores.*.flag').matches(/(fc|ap)/)
   ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -90,9 +100,18 @@ app.post('/mai/:nickname', bodyParser, requireUser, [
     error(403, "forbidden");
     return;
   }
+  var scores = data.scores;
+  delete data.scores;
   var newRecord = await models.laundryRecordRecent.upsert(Object.assign(data, {
     'laundryPlayerId': player.id
   }));
+  for (var i = 0; i < scores.length; i++) {
+    var score = scores[i];
+    await models.laundryScoreRecent.upsert(Object.assign(score, {
+    'seq': i,
+    'laundryPlayerId': player.id
+    }));
+  }
 }));
 
 app.use(function(err, req, res, next) {
