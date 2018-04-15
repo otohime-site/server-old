@@ -7,7 +7,7 @@ CREATE TABLE "laundryScores" (
   seq SMALLINT NOT NULL,
   category VARCHAR NOT NULL,
   "songName" VARCHAR NOT NULL,
-  difficulty VARCHAR NOT NULL,
+  difficulty SMALLINT NOT NULL,
   score REAL NOT NULL,
   flag VARCHAR NOT NULL,
   period tstzrange NOT NULL,

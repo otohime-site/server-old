@@ -10,7 +10,7 @@ function getAttributes(DataTypes) {
   seq: DataTypes.SMALLINT,
   category: DataTypes.STRING,
   songName: DataTypes.STRING,
-  difficulty: DataTypes.STRING,
+  difficulty: DataTypes.SMALLINT,
   score: DataTypes.REAL,
   flag: DataTypes.STRING,
   };
