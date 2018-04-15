@@ -36,7 +36,7 @@ app.get('/mai/:nickname', asyncHandler(async (req, res) => {
   var nickname = req.params.nickname;
   var player = await models.laundryPlayer.findOne({where: {'nickname': nickname}});
   if (!player) {
-    err(404, "not_found");
+    error(404, "not_found");
   }
 }));
 app.post('/mai/', bodyParser, requireUser, asyncHandler(async (req, res) => {
