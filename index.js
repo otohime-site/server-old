@@ -81,7 +81,14 @@ app.post('/mai/:nickname', bodyParser, requireUser, [
   check('scores.*.songName').isString(),
   check('scores.*.difficulty').isInt({min: 1, max: 6}),
   check('scores.*.score').isFloat({min: 0, max: 104}),
-  check('scores.*.flag').matches(/(fc|ap)/)
+  check('scores.*.flag').isString().custom((value) => {
+    var values = value.split('|');
+    values.forEach((val) => {
+      if (!val.match(/^(fc_silver|fc_gold|ap|100)$/)) {
+        throw new Error('Wrong Flag');
+      }
+    });
+  });
   ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
