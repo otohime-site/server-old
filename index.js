@@ -10,11 +10,9 @@ var app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 var requireUser = asyncHandler(async (req, res, next) => {
-  console.log(req.body);
   var userId = req.body.id;
   var token = req.body.token;
   const queryResult = await pool.query('SELECT * FROM users WHERE id = $1;', [userId]);
-  console.log(queryResult.rows.length);
   if (queryResult.rows.length != 1) {
     error(403, "user");
     return;
