@@ -6,9 +6,10 @@ exports.up = (pgm) => {
       type: "uuid",
       notNull: true,
       primaryKey: true,
+      default: pgm.func("gen_random_uuid()")
     },
     email: {
-      allowNull: true,
+      notNull: false,
       type: "varchar(100)",
       unique: true
     },
@@ -23,11 +24,8 @@ exports.up = (pgm) => {
     },
     created_at: {
       notNull: true,
-      type: "timestamptz"
-    },
-    updated_at: {
-      notNull: true,
-      type: "timestamptz"
+      type: "timestamptz",
+      default: pgm.func("current_timestamp")
     }
   });
 };
