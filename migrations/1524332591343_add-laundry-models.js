@@ -21,7 +21,6 @@ CREATE TABLE laundry_players (
 );
 
 CREATE TABLE laundry_records (
-  id uuid PRIMARY KEY,
   card_name VARCHAR NOT NULL,
   rating REAL NOT NULL,
   max_rating REAL NOT NULL,
@@ -33,7 +32,6 @@ CREATE TABLE laundry_records (
 );
 
 CREATE TABLE laundry_records_recent (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id uuid REFERENCES laundry_players (id) UNIQUE NOT NULL
 ) INHERITS (laundry_records);
 
@@ -42,7 +40,6 @@ CREATE INDEX ON laundry_records_recent(rating);
 CREATE INDEX ON laundry_records_recent(class);
 
 CREATE TABLE laundry_records_history (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id uuid REFERENCES laundry_players (id) UNIQUE NOT NULL
 ) INHERITS (laundry_records);
 
@@ -52,7 +49,6 @@ CREATE INDEX ON laundry_records_history USING GIST (period);
 SELECT create_versioning_trigger('laundry_records_recent', 'laundry_records_history');
   
 CREATE TABLE laundry_scores (
-  id uuid PRIMARY KEY,
   seq SMALLINT NOT NULL,
   category VARCHAR NOT NULL,
   song_name VARCHAR NOT NULL,
@@ -63,13 +59,11 @@ CREATE TABLE laundry_scores (
   player_id uuid REFERENCES laundry_players (id) NOT NULL
 );
 CREATE TABLE laundry_scores_recent (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id uuid REFERENCES laundry_players (id) NOT NULL,
   UNIQUE (category, song_name, difficulty, player_id)
 ) INHERITS (laundry_scores);
 
 CREATE TABLE laundry_scores_history (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id uuid REFERENCES laundry_players (id) NOT NULL
 ) INHERITS (laundry_scores);
 
