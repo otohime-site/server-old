@@ -53,7 +53,7 @@ router.get('/mai/:nickname', asyncHandler(async (req, res) => {
   }
   res.send(JSON.stringify(player));
 }));
-router.post('/mai/', express.json({ limit: '50kb' }), requireUser, [
+router.post('/mai/new', express.json({ limit: '50kb' }), requireUser, [
   check('nickname').matches(/[0-9a-z\-\_]/),
   check('privacy').matches(/^(public|anonymous|private)$/)
 ], asyncHandler(async (req, res) => {
