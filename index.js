@@ -110,10 +110,14 @@ router.post('/mai/:nickname',  express.json({ limit: '2mb' }), requireUser, [
   for (var i = 0; i < scores.length; i++) {
     var score = scores[i];
     if (!score.flag) { score.flag = ''; }
-    await pool.query(`INSERT INTO laundry_scores_recent
+    const query = {
+      name: 'insert-scores-recent',
+      text: `INSERT INTO laundry_scores_recent
                      (player_id, seq, category, song_name, difficulty, score, flag) VALUES ($1, $2, $3, $4, $5, $6, $7)
-                     ON CONFLICT(category, song_name, difficulty, player_id) DO UPDATE SET seq = $2, category = $3, song_name = $4, difficulty = $5, score = $6, flag = $7;`,
-                    [player.id, i, score.category, score.songName, score.difficulty, score.score, score.flag]); 
+      ON CONFLICT(category, song_name, difficulty, player_id) DO UPDATE SET seq = $2, category = $3, song_name = $4, difficulty = $5, score = $6, flag = $7;`,
+      values: [player.id, i, score.category, score.songName, score.difficulty, score.score, score.flag]
+    }
+    await pool.query(query);
   }
   res.send(JSON.stringify({}));
 }));
