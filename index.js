@@ -4,11 +4,17 @@ const uuidv4 = require('uuid/v4');
 const bcrypt = require('bcrypt');
 const asyncHandler = require('express-async-handler');
 const session = require('express-session');
+const RedisStore = require('connect-redis')(session);
 const { check, validationResult } = require('express-validator/check');
 const { matchedData, sanitize } = require('express-validator/filter');
 const error = require('./utils').appThrow;
 
 const app = express();
+app.use(session({
+  store: new RedisStore({ host: 'redis' }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+}));
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const requireUser = asyncHandler(async (req, res, next) => {
