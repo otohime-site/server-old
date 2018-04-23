@@ -10,7 +10,8 @@
     "express-validator": "^5.1.2",
     "node-pg-migrate": "^3.1.0",
     "pg": "^7.4.1",
-    "redis": "^2.8.0"
+    "redis": "^2.8.0",
+    "uuid": "^3.2.1"
   },
   "scripts": {
     "migrate": "node-pg-migrate",
