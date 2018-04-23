@@ -5,6 +5,3 @@ exports.appThrow = (status, message) => {
   err.exposed = true;
   throw err;
 };
-exports.userRequired = (req, res, next) => {
-  const models = require('./models');
-};
