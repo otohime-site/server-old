@@ -1,8 +1,7 @@
 exports.shorthands = undefined;
 
 exports.up = (pgm) => {
-  pgm.sql(
-  `
+  pgm.sql(`
 CREATE OR REPLACE FUNCTION create_versioning_trigger(recent regclass, history regclass) RETURNS void AS
 $$
 BEGIN
@@ -70,13 +69,11 @@ CREATE TABLE laundry_scores_history (
 CREATE INDEX ON laundry_scores_recent USING GIST (period);
 CREATE INDEX ON laundry_scores_history USING GIST (period);
 SELECT create_versioning_trigger('laundry_scores_recent', 'laundry_scores_history');
-  `
-  );
+  `);
 };
 
 exports.down = (pgm) => {
-  pgm.sql(
-  `
+  pgm.sql(`
 DROP TABLE laundry_scores_recent;
 DROP TABLE laundry_scores_history;
 DROP TABLE laundry_scores;
@@ -85,6 +82,5 @@ DROP TABLE laundry_records_history;
 DROP TABLE laundry_records;
 DROP TABLE laundry_players;
 DROP FUNCTION IF EXISTS create_versioning_trigger(recent regclass, history regclass);
-  `
-);
+  `);
 };
