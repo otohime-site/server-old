@@ -10,6 +10,7 @@ services:
       - ./migrations:/app/migrations
     links:
       - db
+      - redis
   db:
     build: docker-db/
     environment:
@@ -19,6 +20,7 @@ services:
       - POSTGRES_DB=semiquaver
     volumes:
       - dbdata:/var/lib/postgresql/data
-
+  redis:
+    image: redis:3
 volumes:
   dbdata:
