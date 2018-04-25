@@ -5,6 +5,7 @@ services:
     environment:
       - DATABASE_URL=postgres://semiquaver:smq.moe@db:5432/semiquaver
       - SESSION_SECRET=38247819234890172347823
+      - FRONTEND=https://localhost:5000
     ports:
       - "8585:8585"
     volumes:

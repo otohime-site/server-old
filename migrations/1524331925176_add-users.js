@@ -8,24 +8,19 @@ exports.up = (pgm) => {
       primaryKey: true,
       default: pgm.func('gen_random_uuid()'),
     },
-    email: {
-      notNull: false,
-      type: 'varchar(100)',
+    connected: {
+      notNull: true,
+      type: 'varchar(50)',
       unique: true,
-    },
-    validated: {
-      notNull: true,
-      type: 'boolean',
-      default: 'false',
-    },
-    token: {
-      notNull: true,
-      type: 'varchar(60)',
     },
     created_at: {
       notNull: true,
       type: 'timestamptz',
       default: pgm.func('current_timestamp'),
+    },
+    logged_in_at: {
+      notNull: true,
+      type: 'timestamptz',
     },
   });
 };
