@@ -123,30 +123,80 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
     error(403, 'forbidden');
     return;
   }
-  await pool.query(
-    `INSERT INTO laundry_records_recent
-                   (player_id, card_name, rating, max_rating, icon, title, class) VALUES ($1, $2, $3, $4, $5, $6, $7)
-                   ON CONFLICT(player_id) DO UPDATE SET card_name = $2, rating = $3, max_rating = $4, icon = $5, title = $6, class = $7;`,
-    [player.id, data.cardName, data.rating, data.maxRating, data.icon, data.title, data.class],
-  );
+  // Validate data, and make sure the scores are non-decreasing.
+  const scoreQueryResult = await pool.query('SELECT category, song_name, difficulty, score FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
+  const oldScoreMap = new Map();
+  for (let i = 0; i < scoreQueryResult.rows.length; i += 1) {
+    const score = scoreQueryResult.rows[i];
+    oldScoreMap.set(`${score.category}.${score.song_name}.${score.difficulty}`, parseFloat(score.score));
+  }
 
   const { scores } = req.body;
-  const promises = [];
+  if (!Array.isArray(scores)) {
+    error(422, 'validation');
+  }
   for (let i = 0; i < scores.length; i += 1) {
     const score = scores[i];
-    if (!score.flag) { score.flag = ''; }
-    const query = {
-      name: 'insert-scores-recent',
-      text: `INSERT INTO laundry_scores_recent
-                     (player_id, seq, category, song_name, difficulty, score, flag) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      ON CONFLICT(category, song_name, difficulty, player_id) DO UPDATE SET seq = $2, category = $3,
-      song_name = $4, difficulty = $5, score = $6, flag = $7;`,
-      values: [player.id, i, score.category, score.songName, score.difficulty,
-        score.score, score.flag],
-    };
-    promises.push(pool.query(query));
+    if (!score.category || !score.songName) {
+      error(422, 'validation');
+    }
+    if (!Number.isInteger(score.difficulty) ||
+        score.difficulty < 0 || score.difficulty > 5) {
+      error(422, 'validation');
+    }
+    if (!score.score) {
+      error(422, 'validation');
+    }
+    score.score = parseFloat(score.score);
+    if (Number.isNaN(score.score) || score.score < 0 || score.score > 104) {
+      error(422, 'validation');
+    }
+    const oldScore = oldScoreMap.get(`${score.category}.${score.songName}.${score.difficulty}`);
+    if (score.score < oldScore) {
+      error(422, 'validation');
+    }
+    if (score.flag) {
+      const flags = score.flag.split('|');
+      for (let j = 0; j < flags.length; j += 1) {
+        if (flags[j].search(/^(fc_silver|fc_gold|ap|100)$/) === -1) {
+          error(422, 'validation');
+        }
+      }
+    }
   }
-  await Promise.all(promises);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `INSERT INTO laundry_records_recent
+      (player_id, card_name, rating, max_rating, icon, title, class) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT(player_id) DO UPDATE SET card_name = $2, rating = $3, max_rating = $4, icon = $5, title = $6, class = $7;`,
+      [player.id, data.cardName, data.rating, data.maxRating, data.icon, data.title, data.class],
+    );
+
+    const promises = [];
+    for (let i = 0; i < scores.length; i += 1) {
+      const score = scores[i];
+      if (!score.flag) { score.flag = ''; }
+      const query = {
+        name: 'insert-scores-recent',
+        text: `INSERT INTO laundry_scores_recent
+        (player_id, seq, category, song_name, difficulty, score, flag) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT(category, song_name, difficulty, player_id) DO UPDATE SET seq = $2, category = $3,
+        song_name = $4, difficulty = $5, score = $6, flag = $7;`,
+        values: [player.id, i, score.category, score.songName, score.difficulty,
+          score.score, score.flag],
+      };
+      promises.push(client.query(query));
+    }
+    await Promise.all(promises);
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
   res.send(JSON.stringify({}));
 }));
 app.use('/api', router);
