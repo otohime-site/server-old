@@ -59,6 +59,11 @@ router.get('/connect/facebook/callback', passport.authenticate('facebook', { ses
   req.session.userId = await createOrUpdateUser(connected);
   res.redirect('/');
 }));
+router.get('/mai/me', requireUser, asyncHandler(async (req, res) => {
+  const { user } = req;
+  const queryResult = await pool.query('SELECT * FROM laundry_players WHERE user_id = $1;', [user.id]);
+  res.send(JSON.stringify(queryResult.rows));
+}));
 router.get('/mai/:nickname', asyncHandler(async (req, res) => {
   const { nickname } = req.params;
   const queryResult = await pool.query('SELECT * FROM laundry_players WHERE nickname = $1;', [nickname]);
@@ -113,16 +118,14 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
   const data = matchedData(req);
   const { nickname } = req.params;
   const { user } = req;
-  const queryResult = await pool.query('SELECT id, user_id FROM laundry_players WHERE nickname = $1;', [nickname]);
+  if (nickname === 'me') {
+    error(422, 'validation');
+  }
+  const queryResult = await pool.query('SELECT id, user_id FROM laundry_players WHERE nickname = $1 AND user_id = $2;', [nickname, user.id]);
   if (queryResult.rows.length === 0) {
     error(404, 'not_exists');
-    return;
   }
-  const player = queryResult.rows[0];
-  if (player.user_id !== user.id) {
-    error(403, 'forbidden');
-    return;
-  }
+  const [player] = queryResult.rows;
   // Validate data, and make sure the scores are non-decreasing.
   const scoreQueryResult = await pool.query('SELECT category, song_name, difficulty, score FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
   const oldScoreMap = new Map();
