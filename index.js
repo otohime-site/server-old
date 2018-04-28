@@ -150,7 +150,7 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
         score.difficulty < 0 || score.difficulty > 5) {
       error(422, 'validation');
     }
-    if (typeof score.score !== 'number' || !isFinite(score.score) || score.score < 0 || score.score > 104) {
+    if (!Number.isFinite(score.score) || score.score < 0 || score.score > 104) {
       error(422, 'validation');
     }
     if (!Number.isInteger(score.rawScore) || score.rawScore < 0) {
@@ -188,7 +188,7 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
           name: 'insert-songs',
           text: `INSERT INTO laundry_songs
           (id, seq, category, name) VALUES ($1, $2, $3, $4)
-          ON CONFLICT(id) DO UPDATE SET seq = $2;`, 
+          ON CONFLICT(id) DO UPDATE SET seq = $2;`,
           values: [score.songId, i, score.category, score.songName],
         };
         promises.push(client.query(songQuery));
@@ -198,7 +198,8 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
         text: `INSERT INTO laundry_scores_recent
         (player_id, song_id, difficulty, score, raw_score, flag) VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT(player_id, song_id, difficulty) DO UPDATE SET score = $4, raw_score = $5, flag = $6;`,
-        values: [player.id, score.songId, score.difficulty, score.score, score.rawScore, score.flag],
+        values: [player.id, score.songId, score.difficulty,
+          score.score, score.rawScore, score.flag],
       };
       promises.push(client.query(query));
     }
