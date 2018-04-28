@@ -46,20 +46,28 @@ CREATE INDEX ON laundry_records_recent USING GIST (period);
 CREATE INDEX ON laundry_records_history USING GIST (period);
 
 SELECT create_versioning_trigger('laundry_records_recent', 'laundry_records_history');
-  
-CREATE TABLE laundry_scores (
+
+CREATE TABLE laundry_songs (
+  id SMALLINT PRIMARY KEY,
   seq SMALLINT NOT NULL,
   category VARCHAR NOT NULL,
-  song_name VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  levels VARCHAR(3)[],
+  full_raw_score INTEGER[]
+);
+
+CREATE TABLE laundry_scores (
   difficulty SMALLINT NOT NULL,
+  song_id SMALLINT REFERENCES laundry_songs (id) NOT NULL,
   score REAL NOT NULL,
+  raw_score INTEGER NOT NULL,
   flag VARCHAR NOT NULL,
   period tstzrange NOT NULL,
   player_id uuid REFERENCES laundry_players (id) NOT NULL
 );
 CREATE TABLE laundry_scores_recent (
   player_id uuid REFERENCES laundry_players (id) NOT NULL,
-  UNIQUE (category, song_name, difficulty, player_id)
+  UNIQUE (song_id, difficulty, player_id)
 ) INHERITS (laundry_scores);
 
 CREATE TABLE laundry_scores_history (
@@ -77,6 +85,7 @@ exports.down = (pgm) => {
 DROP TABLE laundry_scores_recent;
 DROP TABLE laundry_scores_history;
 DROP TABLE laundry_scores;
+DROP TABLE laundry_songs;
 DROP TABLE laundry_records_recent;
 DROP TABLE laundry_records_history;
 DROP TABLE laundry_records;

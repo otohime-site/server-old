@@ -127,11 +127,11 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
   }
   const [player] = queryResult.rows;
   // Validate data, and make sure the scores are non-decreasing.
-  const scoreQueryResult = await pool.query('SELECT category, song_name, difficulty, score FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
+  const scoreQueryResult = await pool.query('SELECT song_id, score FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
   const oldScoreMap = new Map();
   for (let i = 0; i < scoreQueryResult.rows.length; i += 1) {
     const score = scoreQueryResult.rows[i];
-    oldScoreMap.set(`${score.category}.${score.song_name}.${score.difficulty}`, parseFloat(score.score));
+    oldScoreMap.set(parseInt(score.song_id, 10), parseFloat(score.score));
   }
 
   const { scores } = req.body;
@@ -140,6 +140,9 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
   }
   for (let i = 0; i < scores.length; i += 1) {
     const score = scores[i];
+    if (!Number.isInteger(score.songId) || score.songId < 0) {
+      error(422, 'validation');
+    }
     if (!score.category || !score.songName) {
       error(422, 'validation');
     }
@@ -147,14 +150,13 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
         score.difficulty < 0 || score.difficulty > 5) {
       error(422, 'validation');
     }
-    if (!score.score) {
+    if (typeof score.score !== 'number' || !isFinite(score.score) || score.score < 0 || score.score > 104) {
       error(422, 'validation');
     }
-    score.score = parseFloat(score.score);
-    if (Number.isNaN(score.score) || score.score < 0 || score.score > 104) {
+    if (!Number.isInteger(score.rawScore) || score.rawScore < 0) {
       error(422, 'validation');
     }
-    const oldScore = oldScoreMap.get(`${score.category}.${score.songName}.${score.difficulty}`);
+    const oldScore = oldScoreMap.get(score.songId);
     if (score.score < oldScore) {
       error(422, 'validation');
     }
@@ -180,15 +182,23 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
     const promises = [];
     for (let i = 0; i < scores.length; i += 1) {
       const score = scores[i];
-      if (!score.flag) { score.flag = ''; }
+      if (score.difficulty === 0) {
+        // Only update the song sequence, insert the category and song name.
+        const songQuery = {
+          name: 'insert-songs',
+          text: `INSERT INTO laundry_songs
+          (id, seq, category, name) VALUES ($1, $2, $3, $4)
+          ON CONFLICT(id) DO UPDATE SET seq = $2;`, 
+          values: [score.songId, i, score.category, score.songName],
+        };
+        promises.push(client.query(songQuery));
+      }
       const query = {
         name: 'insert-scores-recent',
         text: `INSERT INTO laundry_scores_recent
-        (player_id, seq, category, song_name, difficulty, score, flag) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        ON CONFLICT(category, song_name, difficulty, player_id) DO UPDATE SET seq = $2, category = $3,
-        song_name = $4, difficulty = $5, score = $6, flag = $7;`,
-        values: [player.id, i, score.category, score.songName, score.difficulty,
-          score.score, score.flag],
+        (player_id, song_id, difficulty, score, raw_score, flag) VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT(player_id, song_id, difficulty) DO UPDATE SET score = $4, raw_score = $5, flag = $6;`,
+        values: [player.id, score.songId, score.difficulty, score.score, score.rawScore, score.flag],
       };
       promises.push(client.query(query));
     }
