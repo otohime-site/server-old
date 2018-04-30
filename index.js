@@ -64,6 +64,10 @@ router.get('/mai/me', requireUser, asyncHandler(async (req, res) => {
   const queryResult = await pool.query('SELECT * FROM laundry_players WHERE user_id = $1;', [user.id]);
   res.send(JSON.stringify(queryResult.rows));
 }));
+router.get('/mai/songs', asyncHandler(async (req, res) => {
+  const queryResult = await pool.query('SELECT * FROM laundry_songs ORDER BY seq ASC;');
+  res.send(JSON.stringify(queryResult.rows));
+}));
 router.get('/mai/:nickname', asyncHandler(async (req, res) => {
   const { nickname } = req.params;
   const queryResult = await pool.query('SELECT * FROM laundry_players WHERE nickname = $1;', [nickname]);
