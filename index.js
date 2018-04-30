@@ -79,7 +79,7 @@ router.get('/mai/:nickname', asyncHandler(async (req, res) => {
   if (recordResult.rows.length > 0) {
     [player.record] = recordResult.rows;
   }
-  const scoreResult = await pool.query('SELECT * FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
+  const scoreResult = await pool.query('SELECT song_id, difficulty, score, raw_score, flag FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
   if (scoreResult.rows.length > 0) {
     player.scores = scoreResult.rows;
   }
