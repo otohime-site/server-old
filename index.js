@@ -131,11 +131,11 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
   }
   const [player] = queryResult.rows;
   // Validate data, and make sure the scores are non-decreasing.
-  const scoreQueryResult = await pool.query('SELECT song_id, score FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
+  const scoreQueryResult = await pool.query('SELECT song_id, difficulty, score FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
   const oldScoreMap = new Map();
   for (let i = 0; i < scoreQueryResult.rows.length; i += 1) {
     const score = scoreQueryResult.rows[i];
-    oldScoreMap.set(parseInt(score.song_id, 10), parseFloat(score.score));
+    oldScoreMap.set(`${score.song_id}.${score.difficulty}`, parseFloat(score.score));
   }
 
   const { scores } = req.body;
@@ -160,7 +160,7 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
     if (!Number.isInteger(score.rawScore) || score.rawScore < 0) {
       error(422, 'validation');
     }
-    const oldScore = oldScoreMap.get(score.songId);
+    const oldScore = oldScoreMap.get(`${score.songId}.${score.difficulty}`);
     if (score.score < oldScore) {
       error(422, 'validation');
     }
