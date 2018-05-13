@@ -109,12 +109,12 @@ router.get('/mai/:nickname/timeline/:time', [
   }
   const player = queryResult.rows[0];
   const recordResult = await pool.query(`
-    SELECT *, 'before' AS from FROM laundry_records WHERE player_id = $1 AND period -|- tstzrange(to_timestamp($2), 'infinity') UNION
-    SELECT *, 'after' AS from FROM laundry_records WHERE player_id = $1 AND period -|- tstzrange('-infinity', to_timestamp($2));
+    SELECT *, 'before' AS from FROM laundry_records WHERE player_id = $1 AND period << tstzrange(to_timestamp($2 + 0.00001), 'infinity') UNION
+    SELECT *, 'after' AS from FROM laundry_records WHERE player_id = $1 AND period >> tstzrange('-infinity', to_timestamp($2 - 0.00001));
   `, [player.id, time]);
   const scoreResult = await pool.query(`
-    SELECT *, 'before' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period -|- tstzrange(to_timestamp($2), 'infinity') UNION
-    SELECT *, 'after' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period -|- tstzrange('-infinity', to_timestamp($2));
+    SELECT *, 'before' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period << tstzrange(to_timestamp($2 + 0.00001), 'infinity')UNION
+    SELECT *, 'after' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period >> tstzrange('-infinity', to_timestamp($2 - 0.00001));
   `, [player.id, time]);
   res.send(JSON.stringify({
     records: recordResult.rows,
