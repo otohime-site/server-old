@@ -39,7 +39,7 @@ CREATE INDEX ON laundry_records_recent(rating);
 CREATE INDEX ON laundry_records_recent(class);
 
 CREATE TABLE laundry_records_history (
-  player_id uuid REFERENCES laundry_players (id) UNIQUE NOT NULL
+  player_id uuid REFERENCES laundry_players (id) NOT NULL
 ) INHERITS (laundry_records);
 
 CREATE INDEX ON laundry_records_recent USING GIST (period);
