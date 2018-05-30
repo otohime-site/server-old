@@ -1,4 +1,4 @@
-FROM node:9-stretch
+FROM node:10-stretch
 RUN curl -o- -L https://yarnpkg.com/install.sh | bash
 RUN mkdir /app
 ADD package.json /app
