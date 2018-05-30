@@ -2,7 +2,7 @@
   "name": "semiquaver-server",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^1.0.3",
+    "bcrypt": "^2.0.1",
     "connect-redis": "^3.3.3",
     "express": "^4.16.3",
     "express-async-handler": "^1.1.3",
