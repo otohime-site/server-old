@@ -49,10 +49,6 @@ const createOrUpdateUser = async (connected) => {
   return queryResult.rows[0].id;
 };
 const router = express.Router();
-router.get('/users', asyncHandler(async (req, res) => {
-  const queryResult = await pool.query('SELECT * FROM users;');
-  res.send(JSON.stringify(queryResult.rows));
-}));
 router.get('/connect/facebook', passport.authenticate('facebook'));
 router.get('/connect/facebook/callback', passport.authenticate('facebook', { session: false }), asyncHandler(async (req, res) => {
   const { connected } = req.user;
