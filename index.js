@@ -89,15 +89,19 @@ router.get('/mai/:nickname/timeline', asyncHandler(async (req, res) => {
   }
   const player = queryResult.rows[0];
   const timelineResult = await pool.query(`
-    SELECT extract(EPOCH FROM lower) AS lower FROM (
+    SELECT to_json(lower) AS lower FROM (
     SELECT DISTINCT lower(period) FROM laundry_records WHERE player_id = $1 UNION
     SELECT DISTINCT lower(period) FROM laundry_scores WHERE player_id = $1 ORDER BY lower ASC) AS lowers;
   `, [player.id]);
   res.send(JSON.stringify(timelineResult.rows.map(val => val.lower)));
 }));
 router.get('/mai/:nickname/timeline/:time', [
-  check('time').isFloat({ min: 0 }),
+  check('time').isISO8601(),
 ], asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    error(422, 'validation');
+  }
   const { nickname, time } = req.params;
   const queryResult = await pool.query('SELECT * FROM laundry_players WHERE nickname = $1;', [nickname]);
   if (queryResult.rows.length === 0) {
@@ -105,16 +109,16 @@ router.get('/mai/:nickname/timeline/:time', [
   }
   const player = queryResult.rows[0];
   const recordResult = await pool.query(`
-    SELECT *, 'before' AS from FROM laundry_records WHERE player_id = $1 AND period << tstzrange(to_timestamp($2 + 0.00001), 'infinity') UNION
-    SELECT *, 'after' AS from FROM laundry_records WHERE player_id = $1 AND period >> tstzrange('-infinity', to_timestamp($2 - 0.00001));
+    SELECT *, 'before' AS from FROM laundry_records WHERE player_id = $1 AND period -|- tstzrange($2, 'infinity') UNION
+    SELECT *, 'after' AS from FROM laundry_records WHERE player_id = $1 AND period -|- tstzrange('-infinity', $2);
   `, [player.id, time]);
   const scoreResult = await pool.query(`
-    SELECT *, 'before' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period << tstzrange(to_timestamp($2 + 0.00001), 'infinity')UNION
-    SELECT *, 'after' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period >> tstzrange('-infinity', to_timestamp($2 - 0.00001));
+    SELECT *, 'before' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period -|- tstzrange($2, 'infinity') UNION
+    SELECT *, 'after' AS from FROM laundry_scores WHERE player_id = $1 AND score > 0 AND period -|- tstzrange('-infinity', $2);
   `, [player.id, time]);
   res.send(JSON.stringify({
     records: recordResult.rows,
-    scores: scoreResult.rows
+    scores: scoreResult.rows,
   }));
 }));
 router.post('/mai/new', express.json({ limit: '50kb' }), requireUser, [
