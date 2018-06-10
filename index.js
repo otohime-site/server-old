@@ -55,6 +55,10 @@ router.get('/connect/facebook/callback', passport.authenticate('facebook', { ses
   req.session.userId = await createOrUpdateUser(connected);
   res.redirect('/');
 }));
+router.get('/logout', (req, res) => {
+  delete req.session.userId;
+  res.redirect('/');
+});
 router.get('/mai/me', requireUser, asyncHandler(async (req, res) => {
   const { user } = req;
   const queryResult = await pool.query('SELECT * FROM laundry_players WHERE user_id = $1;', [user.id]);
