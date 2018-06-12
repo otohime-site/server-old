@@ -41,6 +41,19 @@ const requireUser = asyncHandler(async (req, res, next) => {
   [req.user] = queryResult.rows;
   next();
 });
+const requireNicknameAccess = asyncHandler(async (req, res, next) => {
+  const { nickname } = req.params;
+  const { user } = req;
+  if (nickname === 'me') {
+    error(422, 'validation');
+  }
+  const queryResult = await pool.query('SELECT id, nickname, user_id FROM laundry_players WHERE nickname = $1 AND user_id = $2;', [nickname, user.id]);
+  if (queryResult.rows.length === 0) {
+    error(404, 'not_exists');
+  }
+  [req.player] = queryResult.rows;
+  next();
+});
 const createOrUpdateUser = async (connected) => {
   const queryResult = await pool.query(`
     INSERT INTO users (connected, logged_in_at) VALUES ($1, current_timestamp)
@@ -146,7 +159,7 @@ router.post('/mai/new', express.json(), requireUser, [
   res.send(JSON.stringify({}));
 }));
 
-router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
+router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requireNicknameAccess, [
   body('cardName').isString(),
   body('rating').isFloat({ min: 0, max: 20 }),
   body('maxRating').isFloat({ min: 0, max: 20 }),
@@ -160,16 +173,7 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
     error(422, 'validation');
   }
   const data = matchedData(req);
-  const { nickname } = req.params;
-  const { user } = req;
-  if (nickname === 'me') {
-    error(422, 'validation');
-  }
-  const queryResult = await pool.query('SELECT id, user_id FROM laundry_players WHERE nickname = $1 AND user_id = $2;', [nickname, user.id]);
-  if (queryResult.rows.length === 0) {
-    error(404, 'not_exists');
-  }
-  const [player] = queryResult.rows;
+  const { player } = req;
   // Validate data, and make sure the scores are non-decreasing.
   const scoreQueryResult = await pool.query('SELECT song_id, difficulty, score FROM laundry_scores_recent WHERE player_id = $1;', [player.id]);
   const oldScoreMap = new Map();
