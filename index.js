@@ -150,6 +150,9 @@ router.post('/mai/new', express.json(), requireUser, [
   const data = matchedData(req);
   const { nickname, privacy } = data;
   const { user } = req;
+  if (nickname === 'me') {
+    error(422, 'validation');
+  }
   const queryResult = await pool.query('SELECT id FROM laundry_players WHERE nickname = $1;', [nickname]);
   if (queryResult.rows.length > 0) {
     error(400, 'exists');
