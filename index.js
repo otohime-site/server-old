@@ -159,6 +159,60 @@ router.post('/mai/new', express.json(), requireUser, [
   res.send(JSON.stringify({}));
 }));
 
+router.post('/mai/:nickname/update', express.json(), requireUser, requireNicknameAccess, [
+  body('nickname').matches(/[0-9a-z\-_]/),
+  body('privacy').matches(/^(public|anonymous|private)$/),
+], asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.mapped()); // eslint-disable-line no-console
+    error(422, 'validation');
+  }
+  const data = matchedData(req);
+  const { player } = req;
+  let newNickname = player.nickname;
+  if (data.nickname !== player.nickname) {
+    const existsResult = await pool.query('SELECT id FROM laundry_players WHERE nickname = $1;', [data.nickname]);
+    if (existsResult.rows.length > 0) {
+      error(400, 'exists');
+    }
+    newNickname = data.nickname;
+  }
+  await pool.query('UPDATE laundry_players SET nickname = $1, privacy = $2 WHERE id = $3;', [newNickname, data.privacy, player.id]);
+  res.send(JSON.stringify({}));
+}));
+
+router.post('/mai/:nickname/delete', express.json(), requireUser, requireNicknameAccess, [
+  body('confirm_nickname').matches(/[0-9a-z\-_]/),
+], asyncHandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.mapped()); // eslint-disable-line no-console
+    error(422, 'validation');
+  }
+  const data = matchedData(req);
+  const { player } = req;
+  if (player.nickname !== data.confirm_nickname) {
+    error(422, 'validation');
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM laundry_scores_recent WHERE player_id = $1', [player.id]);
+    await client.query('DELETE FROM laundry_scores_history WHERE player_id = $1', [player.id]);
+    await client.query('DELETE FROM laundry_records_recent WHERE player_id = $1', [player.id]);
+    await client.query('DELETE FROM laundry_records_history WHERE player_id = $1', [player.id]);
+    await client.query('DELETE FROM laundry_players WHERE id = $1', [player.id]);
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+  res.send(JSON.stringify({}));
+}));
+
 router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requireNicknameAccess, [
   body('cardName').isString(),
   body('rating').isFloat({ min: 0, max: 20 }),
