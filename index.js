@@ -139,7 +139,7 @@ router.get('/mai/:nickname/timeline/:time', [
   }));
 }));
 router.post('/mai/new', express.json(), requireUser, [
-  body('nickname').matches(/[0-9a-z\-_]/),
+  body('nickname').matches(/^[0-9a-z\-_]+$/),
   body('privacy').matches(/^(public|anonymous|private)$/),
 ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
