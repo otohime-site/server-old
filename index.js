@@ -5,7 +5,7 @@ const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
-const { check, validationResult } = require('express-validator/check');
+const { param, body, validationResult } = require('express-validator/check');
 const { matchedData } = require('express-validator/filter');
 const error = require('./utils').appThrow;
 
@@ -100,7 +100,7 @@ router.get('/mai/:nickname/timeline', asyncHandler(async (req, res) => {
   res.send(JSON.stringify(timelineResult.rows.map(val => val.lower)));
 }));
 router.get('/mai/:nickname/timeline/:time', [
-  check('time').isISO8601(),
+  param('time').isISO8601(),
 ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -125,9 +125,9 @@ router.get('/mai/:nickname/timeline/:time', [
     scores: scoreResult.rows,
   }));
 }));
-router.post('/mai/new', express.json({ limit: '50kb' }), requireUser, [
-  check('nickname').matches(/[0-9a-z\-_]/),
-  check('privacy').matches(/^(public|anonymous|private)$/),
+router.post('/mai/new', express.json(), requireUser, [
+  body('nickname').matches(/[0-9a-z\-_]/),
+  body('privacy').matches(/^(public|anonymous|private)$/),
 ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -147,12 +147,12 @@ router.post('/mai/new', express.json({ limit: '50kb' }), requireUser, [
 }));
 
 router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, [
-  check('cardName').isString(),
-  check('rating').isFloat({ min: 0, max: 20 }),
-  check('maxRating').isFloat({ min: 0, max: 20 }),
-  check('icon').isString(),
-  check('title').isString(),
-  check('class').isString(),
+  body('cardName').isString(),
+  body('rating').isFloat({ min: 0, max: 20 }),
+  body('maxRating').isFloat({ min: 0, max: 20 }),
+  body('icon').isString(),
+  body('title').isString(),
+  body('class').isString(),
 ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
