@@ -236,7 +236,7 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requi
   const oldScoreMap = new Map();
   for (let i = 0; i < scoreQueryResult.rows.length; i += 1) {
     const score = scoreQueryResult.rows[i];
-    oldScoreMap.set(`${score.song_id}.${score.difficulty}`, parseFloat(score.score));
+    oldScoreMap.set(`${score.song_id}.${score.difficulty}`, score);
   }
 
   const { scores } = req.body;
@@ -261,10 +261,12 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requi
     if (!Number.isInteger(score.rawScore) || score.rawScore < 0) {
       error(422, 'validation');
     }
-    const oldScore = oldScoreMap.get(`${score.songId}.${score.difficulty}`);
+    const oldScoreData = oldScoreMap.get(`${score.songId}.${score.difficulty}`);
+    const oldScore = (oldScoreData) ? parseFloat(oldScoreData.score) : 0;
     if (score.score < oldScore) {
       error(422, 'validation');
     }
+    oldScoreMap.delete(`${score.songId}.${score.difficulty}`);
     if (score.flag) {
       const flags = score.flag.split('|');
       for (let j = 0; j < flags.length; j += 1) {
@@ -293,7 +295,7 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requi
           name: 'insert-songs',
           text: `INSERT INTO laundry_songs
           (id, seq, category, name, active) VALUES ($1, $2, $3, $4, $5)
-          ON CONFLICT(id) DO UPDATE SET seq = $2; AND active = $5`,
+          ON CONFLICT(id) DO UPDATE SET seq = $2, active = $5;`,
           values: [score.songId, i, score.category, score.songName, true],
         };
         promises.push(client.query(songQuery));
@@ -308,6 +310,15 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requi
       };
       promises.push(client.query(query));
     }
+    // Clear up deleted songs if possible.
+    oldScoreMap.forEach((score) => {
+      const query = {
+        name: 'delete-scores-recent',
+        text: 'DELETE FROM laundry_scores_recent WHERE player_id = $1 AND song_id = $2 AND difficulty = $3;',
+        values: [player.id, score.song_id, score.difficulty],
+      };
+      promises.push(client.query(query));
+    });
     await Promise.all(promises);
     await client.query('COMMIT');
   } catch (e) {
