@@ -78,7 +78,7 @@ router.get('/mai/me', requireUser, asyncHandler(async (req, res) => {
   res.send(JSON.stringify(queryResult.rows));
 }));
 router.get('/mai/songs', asyncHandler(async (req, res) => {
-  const queryResult = await pool.query('SELECT * FROM laundry_songs ORDER BY seq ASC;');
+  const queryResult = await pool.query('SELECT * FROM laundry_songs WHERE active = true ORDER BY seq ASC;');
   res.send(JSON.stringify(queryResult.rows));
 }));
 router.get('/mai/:nickname', asyncHandler(async (req, res) => {
@@ -292,9 +292,9 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requi
         const songQuery = {
           name: 'insert-songs',
           text: `INSERT INTO laundry_songs
-          (id, seq, category, name) VALUES ($1, $2, $3, $4)
-          ON CONFLICT(id) DO UPDATE SET seq = $2;`,
-          values: [score.songId, i, score.category, score.songName],
+          (id, seq, category, name, active) VALUES ($1, $2, $3, $4, $5)
+          ON CONFLICT(id) DO UPDATE SET seq = $2; AND active = $5`,
+          values: [score.songId, i, score.category, score.songName, true],
         };
         promises.push(client.query(songQuery));
       }
