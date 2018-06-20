@@ -106,11 +106,14 @@ router.get('/mai/:nickname/timeline', asyncHandler(async (req, res) => {
   }
   const player = queryResult.rows[0];
   const timelineResult = await pool.query(`
-    SELECT to_json(lower) AS lower FROM (
-    SELECT DISTINCT lower(period) FROM laundry_records WHERE player_id = $1 UNION
-    SELECT DISTINCT lower(period) FROM laundry_scores WHERE player_id = $1 ORDER BY lower ASC) AS lowers;
+    WITH periods AS (
+    SELECT DISTINCT period FROM laundry_records WHERE player_id = $1 UNION
+    SELECT DISTINCT period FROM laundry_scores WHERE player_id = $1),
+    bounds AS (SELECT DISTINCT upper(period) AS period FROM periods WHERE upper_inf(period) = false UNION
+    SELECT DISTINCT lower(period) AS period FROM periods ORDER BY period desc)
+    SELECT to_json(period) as period FROM bounds;
   `, [player.id]);
-  res.send(JSON.stringify(timelineResult.rows.map(val => val.lower)));
+  res.send(JSON.stringify(timelineResult.rows.map(val => val.period)));
 }));
 router.get('/mai/:nickname/timeline/:time', [
   param('time').isISO8601(),
