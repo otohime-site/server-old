@@ -1104,6 +1104,10 @@ negotiator@0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
+node-fetch@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.1.2.tgz#ab884e8e7e57e38a944753cec706f788d1768bb5"
+
 node-pg-migrate@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/node-pg-migrate/-/node-pg-migrate-3.1.0.tgz#5e9eaac9e423f31ef999532d8107adf42524e1d5"
