@@ -273,7 +273,7 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requi
     if (score.flag) {
       const flags = score.flag.split('|');
       for (let j = 0; j < flags.length; j += 1) {
-        if (flags[j].search(/^(fc_silver|fc_gold|ap|100)$/) === -1) {
+        if (flags[j].search(/^(fc_silver|fc_gold|ap|ap_plus|100)$/) === -1) {
           error(422, 'validation');
         }
       }
