@@ -71,14 +71,6 @@ async function main() {
             mailogSong['Master(Lv)'],
             mailogSong['Re:Master(Lv)'],
           ];
-          song.full_raw_score = [
-            mailogSong['Easy(理論値)'],
-            mailogSong['Basic(理論値)'],
-            mailogSong['Advenced(理論値)'],
-            mailogSong['Expert(理論値)'],
-            mailogSong['Master(理論値)'],
-            mailogSong['Re:Master(理論値)'],
-          ];
         } else {
           song.levels = [
             mailogSong['Easy(Lv)'],
@@ -86,13 +78,6 @@ async function main() {
             mailogSong['Advenced(Lv)'],
             mailogSong['Expert(Lv)'],
             mailogSong['Master(Lv)'],
-          ];
-          song.full_raw_score = [
-            mailogSong['Easy(理論値)'],
-            mailogSong['Basic(理論値)'],
-            mailogSong['Advenced(理論値)'],
-            mailogSong['Expert(理論値)'],
-            mailogSong['Master(理論値)'],
           ];
         }
         count += 1;
@@ -133,9 +118,9 @@ async function main() {
     songMap.forEach((song) => {
       const songQuery = {
         name: 'update-songs',
-        text: `UPDATE laundry_songs SET levels = $2, full_raw_score = $3, english_name = $4 
+        text: `UPDATE laundry_songs SET levels = $2, english_name = $3
                WHERE id = $1;`,
-        values: [song.id, song.levels, song.full_raw_score, song.english_name],
+        values: [song.id, song.levels, song.english_name],
       };
       promises.push(client.query(songQuery));
     });
