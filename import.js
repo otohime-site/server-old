@@ -8,12 +8,12 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // Map category from maimai-log to maimai-net's.
 const categoryFromJson = {
-  pops_anime: 'POPS ＆ アニメ',
-  'niconico ': 'niconico ＆ ボーカロイド™',
-  toho: '東方Project',
-  sega: 'SEGA',
-  game: 'ゲーム ＆ バラエティ',
-  original: 'オリジナル ＆ ジョイポリス',
+  'POPS＆アニメ': 'POPS ＆ アニメ',
+  'niconico & ボーカロイド': 'niconico ＆ ボーカロイド™',
+  東方Project: '東方Project',
+  SEGA: 'SEGA',
+  'ゲーム & バラエティ': 'ゲーム ＆ バラエティ',
+  'オリジナル & ジョイポリス': 'オリジナル ＆ ジョイポリス',
 };
 
 // Mapping JSON names to score list names.
@@ -22,34 +22,6 @@ const officialNames = {
   'Pursuing My True Self ': 'Pursuing My True Self',
   'D✪N’T  ST✪P  R✪CKIN’': 'DON’T  STOP  ROCKIN’',
 };
-
-function getSongGeneration(rawVersion) {
-  const ver = parseInt(rawVersion, 10);
-  if (ver >= 19500) {
-    return 6.5; // MiLK PLUS
-  } else if (ver >= 19000) {
-    return 6; // MiLK
-  } else if (ver >= 18500) {
-    return 5.5; // MURASAKi PLUS
-  } else if (ver >= 18000) {
-    return 5; // MURASAKi
-  } else if (ver >= 17000) {
-    return 4.5; // PiNK PLUS
-  } else if (ver >= 16000) {
-    return 4; // PiNK
-  } else if (ver >= 15000) {
-    return 3.5; // ORANGE PLUS
-  } else if (ver >= 14000) {
-    return 3; // ORANGE
-  } else if (ver >= 13000) {
-    return 2.5; // GreeN PLUS
-  } else if (ver >= 12000) {
-    return 2; // GreeN
-  } else if (ver >= 11000) {
-    return 1.5; // PLUS
-  }
-  return 1; // maimai
-}
 
 async function main() {
   const queryResult = await pool.query('SELECT * FROM laundry_songs ORDER BY seq ASC;');
@@ -97,7 +69,7 @@ async function main() {
         if (hasReMaster) {
           song.levels.push(maiJsonSong.lev_remas);
         }
-        song.version = getSongGeneration(maiJsonSong.version);
+        song.version = 7; // Assume all new song is FiNALE
         count += 1;
       }
     }
@@ -120,6 +92,8 @@ async function main() {
         const song = songMap.get(`${category}-${name}`);
         song.english_name = overseasSong.english_name;
         song.japan_only = (overseasSong.japan_only.trim() === 'Y');
+        song.version = parseFloat(overseasSong.version) || null;
+        song.active = (overseasSong.inactive.trim() === 'Y');
         if (song.japan_only) {
           japanOnlyCount += 1;
         }
@@ -136,9 +110,9 @@ async function main() {
     songMap.forEach((song) => {
       const songQuery = {
         name: 'update-songs',
-        text: `UPDATE laundry_songs SET levels = $2, english_name = $3, version = $4
+        text: `UPDATE laundry_songs SET levels = $2, english_name = $3, version = $4, active = $5
                WHERE id = $1;`,
-        values: [song.id, song.levels, song.english_name, song.version],
+        values: [song.id, song.levels, song.english_name, song.version, song.active],
       };
       promises.push(client.query(songQuery));
     });
