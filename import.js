@@ -93,7 +93,7 @@ async function main() {
         song.english_name = overseasSong.english_name;
         song.japan_only = (overseasSong.japan_only.trim() === 'Y');
         song.version = parseFloat(overseasSong.version) || null;
-        song.active = (overseasSong.inactive.trim() === 'Y');
+        song.active = (overseasSong.inactive.trim() !== 'Y');
         if (song.japan_only) {
           japanOnlyCount += 1;
         }
