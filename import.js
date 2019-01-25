@@ -62,7 +62,7 @@ async function main() {
           maiJsonSong.lev_eas,
           maiJsonSong.lev_bas,
           maiJsonSong.lev_adv,
-          maiJsonSong.lev_exc,
+          maiJsonSong.lev_exp,
           maiJsonSong.lev_mas,
         ];
         const hasReMaster = (maiJsonSong.lev_remas !== ' ');
