@@ -129,7 +129,8 @@ router.get('/mai/:nickname/timeline/:time', requireUser(false), requireNicknameP
   if (!errors.isEmpty()) {
     error(422, 'validation');
   }
-  const { player, time } = req.params;
+  const { player } = req;
+  const { time } = req.params;
 
   const recordResult = await pool.query(`
     SELECT *, 'before' AS from FROM laundry_records WHERE player_id = $1 AND period -|- tstzrange($2, 'infinity') UNION
