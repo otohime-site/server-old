@@ -97,6 +97,15 @@ async function main() {
         if (song.japan_only) {
           japanOnlyCount += 1;
         }
+        if (overseasSong.lev_eas) {
+          song.levels = [
+            overseasSong.lev_eas,
+            overseasSong.lev_bas,
+            overseasSong.lev_adv,
+            overseasSong.lev_exp,
+            overseasSong.lev_mas,
+          ];
+        }
         count += 1;
       }
     }
