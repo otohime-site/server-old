@@ -27,20 +27,19 @@ passport.use(new FacebookStrategy({
 app.use(passport.initialize());
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-const requireUser = asyncHandler(async (req, res, next) => {
+const requireUser = throwWhenNoUser => (asyncHandler(async (req, res, next) => {
   const { userId } = req.session;
-  if (!userId) {
-    error(403, 'user');
-    return;
+  req.user = undefined;
+  if (userId) {
+    const queryResult = await pool.query('SELECT * FROM users WHERE id = $1;', [userId]);
+    [req.user] = queryResult.rows;
   }
-  const queryResult = await pool.query('SELECT * FROM users WHERE id = $1;', [userId]);
-  if (queryResult.rows.length !== 1) {
+  if (throwWhenNoUser && !req.user) {
     error(403, 'user');
-    return;
   }
-  [req.user] = queryResult.rows;
   next();
-});
+}));
+
 const requireNicknameAccess = asyncHandler(async (req, res, next) => {
   const { nickname } = req.params;
   const { user } = req;
@@ -54,6 +53,22 @@ const requireNicknameAccess = asyncHandler(async (req, res, next) => {
   [req.player] = queryResult.rows;
   next();
 });
+
+const requireNicknamePublic = asyncHandler(async (req, res, next) => {
+  const { user } = req;
+  const { nickname } = req.params;
+  const queryResult = await pool.query('SELECT * FROM laundry_players WHERE nickname = $1;', [nickname]);
+  if (queryResult.rows.length === 0) {
+    error(404, 'not_found');
+  }
+  const [player] = queryResult.rows;
+  if (player.privacy === 'private' && (!user || player.user_id !== user.id)) {
+    error(403, 'private');
+  }
+  req.player = player;
+  next();
+});
+
 const createOrUpdateUser = async (connected) => {
   const queryResult = await pool.query(`
     INSERT INTO users (connected, logged_in_at) VALUES ($1, current_timestamp)
@@ -72,7 +87,7 @@ router.get('/logout', (req, res) => {
   delete req.session.userId;
   res.redirect('/');
 });
-router.get('/mai/me', requireUser, asyncHandler(async (req, res) => {
+router.get('/mai/me', requireUser(true), asyncHandler(async (req, res) => {
   const { user } = req;
   const queryResult = await pool.query('SELECT * FROM laundry_players WHERE user_id = $1;', [user.id]);
   res.send(JSON.stringify(queryResult.rows));
@@ -81,13 +96,9 @@ router.get('/mai/songs', asyncHandler(async (req, res) => {
   const queryResult = await pool.query('SELECT * FROM laundry_songs ORDER BY seq ASC;');
   res.send(JSON.stringify(queryResult.rows));
 }));
-router.get('/mai/:nickname', asyncHandler(async (req, res) => {
-  const { nickname } = req.params;
-  const queryResult = await pool.query('SELECT * FROM laundry_players WHERE nickname = $1;', [nickname]);
-  if (queryResult.rows.length === 0) {
-    error(404, 'not_found');
-  }
-  const player = queryResult.rows[0];
+router.get('/mai/:nickname', requireUser(false), requireNicknamePublic, asyncHandler(async (req, res) => {
+  const { player } = req;
+
   const recordResult = await pool.query('SELECT * FROM laundry_records_recent WHERE player_id = $1;', [player.id]);
   if (recordResult.rows.length > 0) {
     [player.record] = recordResult.rows;
@@ -98,13 +109,9 @@ router.get('/mai/:nickname', asyncHandler(async (req, res) => {
   }
   res.send(JSON.stringify(player));
 }));
-router.get('/mai/:nickname/timeline', asyncHandler(async (req, res) => {
-  const { nickname } = req.params;
-  const queryResult = await pool.query('SELECT * FROM laundry_players WHERE nickname = $1;', [nickname]);
-  if (queryResult.rows.length === 0) {
-    error(404, 'not_found');
-  }
-  const player = queryResult.rows[0];
+router.get('/mai/:nickname/timeline', requireUser(false), requireNicknamePublic, asyncHandler(async (req, res) => {
+  const { player } = req;
+
   const timelineResult = await pool.query(`
     WITH periods AS (
     SELECT DISTINCT period FROM laundry_records WHERE player_id = $1 UNION
@@ -115,19 +122,15 @@ router.get('/mai/:nickname/timeline', asyncHandler(async (req, res) => {
   `, [player.id]);
   res.send(JSON.stringify(timelineResult.rows.map(val => val.period)));
 }));
-router.get('/mai/:nickname/timeline/:time', [
+router.get('/mai/:nickname/timeline/:time', requireUser(false), requireNicknamePublic, [
   param('time').isISO8601(),
 ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     error(422, 'validation');
   }
-  const { nickname, time } = req.params;
-  const queryResult = await pool.query('SELECT * FROM laundry_players WHERE nickname = $1;', [nickname]);
-  if (queryResult.rows.length === 0) {
-    error(404, 'not_found');
-  }
-  const player = queryResult.rows[0];
+  const { player, time } = req.params;
+
   const recordResult = await pool.query(`
     SELECT *, 'before' AS from FROM laundry_records WHERE player_id = $1 AND period -|- tstzrange($2, 'infinity') UNION
     SELECT *, 'after' AS from FROM laundry_records WHERE player_id = $1 AND period -|- tstzrange('-infinity', $2);
@@ -141,7 +144,7 @@ router.get('/mai/:nickname/timeline/:time', [
     scores: scoreResult.rows,
   }));
 }));
-router.post('/mai/new', express.json(), requireUser, [
+router.post('/mai/new', express.json(), requireUser(true), [
   body('nickname').matches(/^[0-9a-z\-_]+$/),
   body('privacy').matches(/^(public|anonymous|private)$/),
 ], asyncHandler(async (req, res) => {
@@ -165,7 +168,7 @@ router.post('/mai/new', express.json(), requireUser, [
   res.send(JSON.stringify({}));
 }));
 
-router.post('/mai/:nickname/update', express.json(), requireUser, requireNicknameAccess, [
+router.post('/mai/:nickname/update', express.json(), requireUser(true), requireNicknameAccess, [
   body('nickname').matches(/[0-9a-z\-_]/),
   body('privacy').matches(/^(public|anonymous|private)$/),
 ], asyncHandler(async (req, res) => {
@@ -188,7 +191,7 @@ router.post('/mai/:nickname/update', express.json(), requireUser, requireNicknam
   res.send(JSON.stringify({}));
 }));
 
-router.post('/mai/:nickname/delete', express.json(), requireUser, requireNicknameAccess, [
+router.post('/mai/:nickname/delete', express.json(), requireUser(true), requireNicknameAccess, [
   body('confirm_nickname').matches(/[0-9a-z\-_]/),
 ], asyncHandler(async (req, res) => {
   const errors = validationResult(req);
@@ -219,7 +222,7 @@ router.post('/mai/:nickname/delete', express.json(), requireUser, requireNicknam
   res.send(JSON.stringify({}));
 }));
 
-router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser, requireNicknameAccess, [
+router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser(true), requireNicknameAccess, [
   body('cardName').isString(),
   body('rating').isFloat({ min: 0, max: 20 }),
   body('maxRating').isFloat({ min: 0, max: 20 }),
