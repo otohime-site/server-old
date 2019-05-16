@@ -105,6 +105,9 @@ async function main() {
             overseasSong.lev_exp,
             overseasSong.lev_mas,
           ];
+          if (overseasSong.lev_remas) {
+            song.levels.push(overseasSong.lev_remas)
+          }
         }
         count += 1;
       }
