@@ -2,30 +2,28 @@
   "name": "semiquaver-server",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^2.0.1",
-    "connect-redis": "^3.3.3",
+    "connect-redis": "^3.4.1",
     "encoding": "^0.1.12",
-    "express": "^4.16.3",
-    "express-async-handler": "^1.1.3",
-    "express-session": "^1.15.6",
-    "express-validator": "^5.1.2",
-    "node-fetch": "^2.1.2",
-    "node-pg-migrate": "^3.1.0",
-    "papaparse": "^4.5.0",
+    "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
+    "express-session": "^1.16.2",
+    "express-validator": "^6.0.1",
+    "node-fetch": "^2.6.0",
+    "node-pg-migrate": "^3.21.1",
+    "papaparse": "^5.0.0",
     "passport": "^0.4.0",
-    "passport-facebook": "^2.1.1",
-    "passport-twitter": "^1.0.4",
-    "pg": "^7.4.1",
+    "passport-facebook": "^3.0.0",
+    "pg": "^7.11.0",
     "redis": "^2.8.0",
-    "uuid": "^3.2.1"
+    "uuid": "^3.3.2"
   },
   "scripts": {
     "migrate": "node-pg-migrate",
     "lint": "eslint *.js **/*.js"
   },
   "devDependencies": {
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.11.0"
+    "eslint": "^6.0.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.3"
   }
 }

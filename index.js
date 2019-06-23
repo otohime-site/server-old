@@ -5,8 +5,8 @@ const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
-const { param, body, validationResult } = require('express-validator/check');
-const { matchedData } = require('express-validator/filter');
+const { param, body, validationResult } = require('express-validator');
+const { matchedData } = require('express-validator');
 const error = require('./utils').appThrow;
 
 const app = express();
