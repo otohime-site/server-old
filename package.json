@@ -3,6 +3,7 @@
   "license": "MIT",
   "dependencies": {
     "connect-redis": "^3.4.1",
+    "cors": "^2.8.5",
     "encoding": "^0.1.12",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",

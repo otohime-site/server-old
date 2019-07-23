@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 const express = require('express');
+const cors = require('cors');
 const asyncHandler = require('express-async-handler');
 const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
@@ -8,6 +9,12 @@ const RedisStore = require('connect-redis')(session);
 const { param, body, validationResult } = require('express-validator');
 const { matchedData } = require('express-validator');
 const error = require('./utils').appThrow;
+
+const LAUNDRY_CORS = {
+  origin: ['https://maimai-net.com'],
+  allowedHeaders: 'Content-Type',
+  credentials: true,
+};
 
 const app = express();
 app.set('trust proxy', 1);
@@ -87,7 +94,7 @@ router.get('/logout', (req, res) => {
   delete req.session.userId;
   res.redirect('/');
 });
-router.get('/mai/me', requireUser(true), asyncHandler(async (req, res) => {
+router.get('/mai/me', cors(LAUNDRY_CORS), requireUser(true), asyncHandler(async (req, res) => {
   const { user } = req;
   const queryResult = await pool.query('SELECT * FROM laundry_players WHERE user_id = $1;', [user.id]);
   res.send(JSON.stringify(queryResult.rows));
@@ -223,7 +230,8 @@ router.post('/mai/:nickname/delete', express.json(), requireUser(true), requireN
   res.send(JSON.stringify({}));
 }));
 
-router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser(true), requireNicknameAccess, [
+router.options('/mai/:nickname', cors(LAUNDRY_CORS));
+router.post('/mai/:nickname', cors(LAUNDRY_CORS), express.json({ limit: '2mb' }), requireUser(true), requireNicknameAccess, [
   body('cardName').isString(),
   body('rating').isFloat({ min: 0, max: 20 }),
   body('maxRating').isFloat({ min: 0, max: 20 }),
@@ -258,8 +266,8 @@ router.post('/mai/:nickname', express.json({ limit: '2mb' }), requireUser(true),
     if (!score.category || !score.songName) {
       error(422, 'validation');
     }
-    if (!Number.isInteger(score.difficulty) ||
-        score.difficulty < 0 || score.difficulty > 5) {
+    if (!Number.isInteger(score.difficulty)
+        || score.difficulty < 0 || score.difficulty > 5) {
       error(422, 'validation');
     }
     if (!Number.isFinite(score.score) || score.score < 0 || score.score > 104) {
