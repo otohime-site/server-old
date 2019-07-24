@@ -1,6 +1,8 @@
-exports.shorthands = undefined;
+import { MigrationBuilder } from 'node-pg-migrate'
 
-exports.up = (pgm) => {
+exports.shorthands = undefined
+
+export const up = (pgm: MigrationBuilder) => {
   pgm.sql(`
 CREATE OR REPLACE FUNCTION create_versioning_trigger(recent regclass, history regclass) RETURNS void AS
 $$
@@ -80,7 +82,7 @@ SELECT create_versioning_trigger('laundry_scores_recent', 'laundry_scores_histor
   `);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder) => {
   pgm.sql(`
 DROP TABLE laundry_scores_recent;
 DROP TABLE laundry_scores_history;

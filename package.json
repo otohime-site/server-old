@@ -16,13 +16,14 @@
     "passport-facebook": "^3.0.0",
     "pg": "^7.11.0",
     "redis": "^2.8.0",
+    "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
     "typescript": "^3.5.3",
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "migrate": "node-pg-migrate",
-    "import-laundry": "node build/laundry/import.js"
+    "migrate": "node migrate.js",
+    "import-laundry": "ts-node server/laundry/import.ts"
   },
   "devDependencies": {
     "@types/connect-redis": "^0.0.10",
