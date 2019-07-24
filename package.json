@@ -21,7 +21,8 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "migrate": "node-pg-migrate"
+    "migrate": "node-pg-migrate",
+    "import-laundry": "node build/laundry/import.js"
   },
   "devDependencies": {
     "@types/connect-redis": "^0.0.10",
