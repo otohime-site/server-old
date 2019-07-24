@@ -6,6 +6,6 @@ ADD package.json /app
 ADD yarn.lock /app
 WORKDIR /app
 RUN yarn install
-RUN yarn tsc
 ADD . /app
+RUN yarn tsc
 CMD ["pm2-runtime", "./build/index.js", "-i", "4"]
