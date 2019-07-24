@@ -7,4 +7,4 @@ ADD yarn.lock /app
 WORKDIR /app
 RUN yarn install
 ADD . /app
-CMD ["pm2-runtime", "index.js", "-i", "4"]
+CMD ["pm2-runtime", "./server/index.js", "-i", "4"]
