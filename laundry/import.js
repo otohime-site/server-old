@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
 
-const { Pool } = require('pg');
 const fetch = require('node-fetch');
 const Papa = require('papaparse');
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = require('../db');
 
 // Map category from maimai-log to maimai-net's.
 const categoryFromJson = {
@@ -106,7 +105,7 @@ async function main() {
             overseasSong.lev_mas,
           ];
           if (overseasSong.lev_remas) {
-            song.levels.push(overseasSong.lev_remas)
+            song.levels.push(overseasSong.lev_remas);
           }
         }
         count += 1;
