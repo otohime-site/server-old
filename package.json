@@ -16,15 +16,25 @@
     "passport-facebook": "^3.0.0",
     "pg": "^7.11.0",
     "redis": "^2.8.0",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3",
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "migrate": "node-pg-migrate",
-    "lint": "eslint *.js **/*.js"
+    "migrate": "node-pg-migrate"
   },
   "devDependencies": {
+    "@types/connect-redis": "^0.0.10",
+    "@types/cors": "^2.8.5",
+    "@types/express": "^4.17.0",
+    "@types/express-session": "^1.15.13",
+    "@types/node-fetch": "^2.5.0",
+    "@types/papaparse": "^5.0.1",
+    "@types/passport": "^1.0.0",
+    "@types/passport-facebook": "^2.1.9",
     "eslint": "^6.0.0",
     "eslint-config-airbnb-base": "^13.2.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "tslint-config-standard": "^8.0.1"
   }
 }
