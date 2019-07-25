@@ -5,6 +5,7 @@ import { Strategy as FacebookStrategy } from 'passport-facebook'
 import session from 'express-session'
 import connectRedis from 'connect-redis'
 import laundryRouter from './laundry/router'
+import laundryDXRouter from './laundry_dx/router'
 import pool from './db'
 
 const RedisStore = connectRedis(session)
@@ -49,6 +50,7 @@ router.get('/logout', (req, res) => {
   res.redirect('/')
 })
 router.use('/mai', laundryRouter)
+router.use('/mdx', laundryDXRouter)
 
 app.use('/api', router)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
