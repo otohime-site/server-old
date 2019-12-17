@@ -183,7 +183,6 @@ router.post('/:nickname', cors(LAUNDRY_CORS), express.json({ limit: '2mb' }), re
   body('cardName').isString(),
   body('rating').isFloat({ min: 0, max: 20 }),
   body('maxRating').isFloat({ min: 0, max: 20 }),
-  body('icon').isString(),
   body('title').isString(),
   body('class').isString()
 ], asyncHandler(async (req, res) => {
@@ -246,7 +245,7 @@ router.post('/:nickname', cors(LAUNDRY_CORS), express.json({ limit: '2mb' }), re
       `INSERT INTO laundry_records_recent
       (player_id, card_name, rating, max_rating, icon, title, class) VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT(player_id) DO UPDATE SET card_name = $2, rating = $3, max_rating = $4, icon = $5, title = $6, class = $7;`,
-      [player.id, data.cardName, data.rating, data.maxRating, data.icon, data.title, data.class]
+      [player.id, data.cardName, data.rating, data.maxRating, 'na', data.title, data.class]
     )
 
     const promises = []
