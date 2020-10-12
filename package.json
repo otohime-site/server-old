@@ -21,6 +21,7 @@
     "uuid": "^8.3.1"
   },
   "scripts": {
+    "tsc": "tsc",
     "migrate": "node migrate.js",
     "import-laundry": "ts-node server/laundry/import.ts"
   },

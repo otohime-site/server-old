@@ -24,6 +24,6 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
   redis:
-    image: redis:3
+    image: redis:6
 volumes:
   dbdata:
