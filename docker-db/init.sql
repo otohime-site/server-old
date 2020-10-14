@@ -1,3 +1,2 @@
 CREATE EXTENSION pgcrypto;
-CREATE EXTENSION btree_gist;
-CREATE EXTENSION periods;
+CREATE EXTENSION temporal_tables;

@@ -22,7 +22,6 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "tsc": "tsc",
     "migrate": "node migrate.js",
     "import-laundry": "ts-node server/laundry/import.ts"
   },
